@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import CartPage from './CartPage';
 import { CartContext, CartItem } from '../context/CartContext';
@@ -63,7 +64,7 @@ describe('CartPage', () => {
 
     it('displays cart items when cart has items', () => {
         renderWithCartContext();
-        
+
         expect(screen.getByText('Your Cart')).toBeInTheDocument();
         expect(screen.getByText('Test Product 1')).toBeInTheDocument();
         expect(screen.getByText('Test Product 2')).toBeInTheDocument();
@@ -71,5 +72,56 @@ describe('CartPage', () => {
         expect(screen.getByText('Price: $49.99')).toBeInTheDocument();
         expect(screen.getByText('Quantity: 2')).toBeInTheDocument();
         expect(screen.getByText('Quantity: 1')).toBeInTheDocument();
+    });
+
+    it('shows an empty cart message when the cart is empty', () => {
+        renderWithCartContext({
+            ...mockCartContext,
+            cartItems: []
+        });
+
+        expect(screen.getByText('Your cart is empty.')).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /checkout/i })).not.toBeInTheDocument();
+    });
+
+    it('opens the checkout modal when checkout is clicked', async () => {
+        const user = userEvent.setup();
+
+        renderWithCartContext();
+
+        await user.click(screen.getByRole('button', { name: /checkout/i }));
+
+        expect(screen.getByTestId('checkout-modal')).toBeInTheDocument();
+    });
+
+    it('confirms checkout and shows the processed order state', async () => {
+        const user = userEvent.setup();
+        const clearCart = vi.fn();
+
+        renderWithCartContext({
+            ...mockCartContext,
+            clearCart
+        });
+
+        await user.click(screen.getByRole('button', { name: /checkout/i }));
+        await user.click(screen.getByTestId('confirm-checkout'));
+
+        expect(clearCart).toHaveBeenCalledTimes(1);
+        expect(screen.getByText('Your order has been processed!')).toBeInTheDocument();
+        expect(screen.getByText('Test Product 1')).toBeInTheDocument();
+        expect(screen.getByText('Quantity: 2')).toBeInTheDocument();
+    });
+
+    it('cancels checkout and returns to the cart view', async () => {
+        const user = userEvent.setup();
+
+        renderWithCartContext();
+
+        await user.click(screen.getByRole('button', { name: /checkout/i }));
+        await user.click(screen.getByTestId('cancel-checkout'));
+
+        expect(screen.queryByTestId('checkout-modal')).not.toBeInTheDocument();
+        expect(screen.getByText('Your Cart')).toBeInTheDocument();
+        expect(screen.getByText('Test Product 1')).toBeInTheDocument();
     });
 });
