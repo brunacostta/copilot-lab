@@ -25,6 +25,7 @@ const Consumer = () => {
       <p data-testid="count">{context.cartItems.length}</p>
       <p data-testid="quantity">{context.cartItems[0]?.quantity ?? 0}</p>
       <button onClick={() => context.addToCart(product)}>Add Item</button>
+      <button onClick={() => context.removeFromCart(product.id)}>Remove Item</button>
       <button onClick={() => context.clearCart()}>Clear Cart</button>
       <p>{context.cartItems[0]?.name ?? 'empty'}</p>
     </div>
@@ -66,5 +67,22 @@ describe('CartContext', () => {
 
     expect(screen.getByTestId('count')).toHaveTextContent('1');
     expect(screen.getByTestId('quantity')).toHaveTextContent('2');
+  });
+
+  it('removes an item from the cart', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <CartProvider>
+        <Consumer />
+      </CartProvider>
+    );
+
+    await user.click(screen.getByRole('button', { name: /add item/i }));
+    expect(screen.getByText('Apple')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /remove item/i }));
+    expect(screen.getByText('empty')).toBeInTheDocument();
+    expect(screen.getByTestId('count')).toHaveTextContent('0');
   });
 });

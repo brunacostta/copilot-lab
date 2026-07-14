@@ -14,7 +14,7 @@ const CartPage = () => {
         throw new Error('CartContext must be used within a CartProvider');
     }
 
-    const { cartItems, clearCart } = cartContext;
+    const { cartItems, removeFromCart, clearCart } = cartContext;
 
     const handleCheckout = () => {
         setIsCheckingOut(true);
@@ -72,6 +72,7 @@ const CartPage = () => {
                                             <p>Price: ${item.price.toFixed(2)}</p>
                                             <p>Quantity: {item.quantity}</p>
                                         </div>
+                                        <button onClick={() => removeFromCart(item.id)} className="remove-item-btn">Remove</button>
                                     </div>
                                 ))}
                             </div>

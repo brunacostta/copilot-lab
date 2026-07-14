@@ -27,7 +27,7 @@ describe('ProductsPage', () => {
 
   const renderProductsPage = (addToCart = vi.fn()) => {
     return render(
-      <CartContext.Provider value={{ cartItems: [], addToCart, clearCart: vi.fn() }}>
+      <CartContext.Provider value={{ cartItems: [], addToCart, removeFromCart: vi.fn(), clearCart: vi.fn() }}>
         <ProductsPage />
       </CartContext.Provider>
     );
